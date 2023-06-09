@@ -1,5 +1,5 @@
 from aiogram import types, executor, Dispatcher, Bot
-from config import BOT_TOKEN
+from config import BOT_TOKEN, BOT_TOKEN1
 from aiogram.types import ReplyKeyboardRemove
 from keyboards import day_ikb, time_kb1, time_kb2, time_kb3, time_kb4, time_kb5, time_kb6, time_kb7, day_kb, \
     time_kb_for_update
@@ -7,9 +7,10 @@ from db import BotDB
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.utils.exceptions import MessageTextIsEmpty, ChatNotFound
+from aiogram.utils.exceptions import ChatNotFound
 from mysql.connector.errors import IntegrityError
 import sys
+import os
 
 day_for_delete = '1'
 day_for_update = '1'
@@ -20,10 +21,11 @@ last_id = 0
 storage = MemoryStorage()
 
 """имя бд"""
-BotDB = BotDB('prov.db')
+BotDB = BotDB('prov1.db')
 
 """бот, прокси"""
 bot = Bot(token=BOT_TOKEN)
+bot1 = Bot(token=BOT_TOKEN1)
 """диспатчер"""
 dp = Dispatcher(bot=bot,
                 storage=storage)
@@ -50,6 +52,8 @@ while i <= 6:
     i += 1
 
 commands = "Откройте меню чтобы посмотреть какие команды тут есть."
+
+
 class StatesGroup(StatesGroup):
     """класс состояний мышины состояний"""
     password = State()
@@ -78,7 +82,6 @@ async def tutor_command(message: types.Message, state: FSMContext):
         pasw = str(BotDB.select_password(message.from_user.id)[0])
         """проверяет пароль с введёнными"""
         if pasw == password:
-            root_password = BotDB.select_root_password(1)[0]
             """обнуляет состояние"""
             await state.finish()
 
@@ -92,7 +95,6 @@ async def tutor_command(message: types.Message, state: FSMContext):
 
             @dp.message_handler(commands=['update_time'])
             async def select_day_command(message: types.Message):
-                await message.delete()
                 await bot.send_message(message.from_user.id,
                                        text="Введите день, у которого хотите обновить время. Если вы хотите "
                                             "остановить перестановку  времени пишите stop",
@@ -105,21 +107,25 @@ async def tutor_command(message: types.Message, state: FSMContext):
                 await message.delete()
                 await state.finish()
                 if message.text != 'stop':
-                    day_for_update = message.text
-                    await bot.send_message(message.from_user.id,
-                                           text=message.text,
-                                           reply_markup=ReplyKeyboardRemove())
-                    await bot.send_message(message.from_user.id,
-                                           text='Введите, что вы хотите обновить. Если вы хотите остановить перестановку '
-                                                'времени пишите stop',
-                                           reply_markup=time_kb_for_update)
-                    time1 = BotDB.select_time_for_update1(day_for_update)[0]
-                    await bot.send_message(message.from_user.id,
-                                           text='Текущее время для time1 - ' + time1)
-                    time2 = BotDB.select_time_for_update2(day_for_update)[0]
-                    await bot.send_message(message.from_user.id,
-                                           text='Текущее время для time2 - ' + time2)
-                    await StatesGroup.time_for_update.set()
+                    if BotDB.select_time_true(1)[0] == 1:
+                        day_for_update = message.text
+                        await bot.send_message(message.from_user.id,
+                                               text=message.text,
+                                               reply_markup=ReplyKeyboardRemove())
+                        await bot.send_message(message.from_user.id,
+                                               text='Введите, что вы хотите обновить. Если вы хотите остановить перестановку '
+                                                    'времени пишите stop',
+                                               reply_markup=time_kb_for_update)
+                        time1 = BotDB.select_time_for_update1(day_for_update)[0]
+                        await bot.send_message(message.from_user.id,
+                                               text='Текущее время для time1 - ' + time1)
+                        time2 = BotDB.select_time_for_update2(day_for_update)[0]
+                        await bot.send_message(message.from_user.id,
+                                               text='Текущее время для time2 - ' + time2)
+                        await StatesGroup.time_for_update.set()
+                    else:
+                        await bot.send_message(message.from_user.id,
+                                               text='Перед началом изменения времени введите команду /alert')
                 else:
                     await bot.send_message(message.from_user.id,
                                            text='Процесс был остановлен.')
@@ -137,7 +143,7 @@ async def tutor_command(message: types.Message, state: FSMContext):
                     await bot.send_message(message.from_user.id,
                                            text='Введите, на какое время вы хотите поменять текущее. Вводите так'
                                                 ' часы:время (xx:xx). Если вы хотите остановить перестановку '
-                                                'времени пишите stop')
+                                                'времени пишите stop, если вы хотите убрать время введите xx:xx')
                     await StatesGroup.update_time.set()
                 else:
                     await bot.send_message(message.from_user.id,
@@ -162,27 +168,27 @@ async def tutor_command(message: types.Message, state: FSMContext):
 
                     j = 0
                     try:
-                        print(users_to_update_time)
                         while len(users_to_update_time) > j:
                             this_user = users_to_update_time[j][1]
                             this_user_id = users_to_update_time[j][0]
-                            BotDB.delete_need_day_us(this_user_id)
                             last_day_id = BotDB.select_last_user_id(this_user)[0]
                             last_day_and_time = BotDB.select_user_day_and_time(last_day_id)
+                            BotDB.delete_need_day_us(this_user_id)
+                            print(last_day_id)
+                            print(this_user_id)
                             try:
                                 if this_user_id != last_day_id:
                                     BotDB.update_day_id_us(this_user_id, last_day_and_time[0], last_day_and_time[1])
                             except IntegrityError:
                                 k = 0
                             try:
-                                await bot.send_message(this_user,
+                                await bot1.send_message(this_user,
                                                        text='Ваше время записи ' + day_for_update + ' ' + last_time + ' теперь недоступно, так что его пришлось удалить, извиняемся за неудобство')
                             except ChatNotFound:
                                 k = 0
                             j += 1
                     except IndexError:
                         k = 0
-
                     admins_to_update_time = BotDB.select_admins_to_update_time(day_for_update, last_time)
                     try:
                         print(admins_to_update_time[0])
@@ -200,57 +206,46 @@ async def tutor_command(message: types.Message, state: FSMContext):
                                                text='Ваше время записи ' + day_for_update + ' ' + last_time + ' теперь недоступно, так что его пришлось удалить, извиняемся за неудобство')
                     except IndexError:
                         k = 0
-
                     await bot.send_message(message.from_user.id,
                                            text=message.text,
                                            reply_markup=ReplyKeyboardRemove())
-                    await bot.send_message(message.from_user.id,
-                                           text='Время успешно обновлено')
                 else:
                     await bot.send_message(message.from_user.id,
                                            text='Процесс был остановлен.')
 
             @dp.message_handler(commands=['alert'])
             async def delete_admin_command(message: types.Message):
-                await message.delete()
-                all_admins = BotDB.select_all_admins_user_id('1')
-                j = 0
-                while len(all_admins) > j:
-                    try:
-                        await bot.send_message(all_admins[j][0],
-                                               text="Извиняемся за неудобства.")
-                    except ChatNotFound:
-                        k = 0
-                    j += 1
                 j = 0
                 all_users = BotDB.select_all_users('1')
                 """эта функция удаляет админа и все его дни"""
                 while len(all_users) > j:
                     try:
-                        await bot.send_message(all_users[j][0],
-                                               text="Извиняемся за неудобства.")
+                        await bot1.send_message(all_users[j][0],
+                                                text="Извиняемся за неудобства. Бот будет на некоторое время отключен.")
                     except ChatNotFound:
                         k = 0
                     j += 1
-                BotDB.delete_unfinished_day('2')
+                BotDB.update_time_true(1, 1)
+                BotDB.delete_unfinished_day_user('2')
                 await bot.send_message(message.from_user.id,
                                        text="Уведомления отправлены")
-                sys.exit()
 
-            @dp.message_handler(commands=['help'])
-            async def help_command(message: types.Message):
-                await message.delete()
-                """эта функция показывает все команды корневого админа"""
+            @dp.message_handler(commands=['launch'])
+            async def delete_admin_command(message: types.Message):
+                j = 0
+                all_users = BotDB.select_all_users('1')
+                BotDB.update_time_true(0, 1)
+                while len(all_users) > j:
+                    try:
+                        await bot1.send_message(all_users[j][0],
+                                                text="Технические работы были закончены")
+                    except ChatNotFound:
+                        k = 0
+                    j += 1
                 await bot.send_message(message.from_user.id,
-                                       text="Чтобы ввести новый интервал между админами(со старта он = 7) введитие - /new_admins_interval_корневойпароль \\например /new_admins_interval_222"
-                                            "\n\nЧтобы добавить нового админа введите - /add_new_admin_корневойпароль \\например  /add_new_admin_222"
-                                            "\n\nчтобы разлогиниться из обычного админа корневому введите - /unlog_корневойпароль \\например  /unlog_222 (учтите все дни этого админа удалятся)"
-                                            "\n\nчтобы увидеть всех админов введите - /all_admins_корневойпароль \\например  /all_admins_222 (3 в никнейме означает что пароль никем не занят)"
-                                            "\n\nчтобы удалить админа введие - /delete_admin_корневойпароль пароль (пароль админа которого хотите удалить) \\например /delete_admin_222 152"
-                                            "\n\nчтобы увидеть все команды в телеграмме введите - /help_корневойпароль \\например /help_222"
-                                            "\n\nчтобы поменять время в таблице со временем введите - /update_time_корневойпароль \\например /update_time_222"
-                                            "\n\nчтобы прекратить работу бота после смены времени в таблице со временем введите - /alert_корневойпароль \\например /alert_22 "
-                                            "(обязательно делайте это и запускайте бота заново если вы закончили изменять время в таблице со временем)")
+                                       text="Уведомления отправлены и бот включён")
+                os.system('start python user_bot.py')
+                sys.exit()
 
             @dp.callback_query_handler()
             async def day_command(callback: types.CallbackQuery):
@@ -280,44 +275,63 @@ async def tutor_command(message: types.Message, state: FSMContext):
                     day = "Воскресенье"
                     kla = time_kb7
                 if callback.data == "day1" or "day2" or "day3" or "day4" or "day5" or "day6" or "day7":
-                    await bot.send_message(callback.message.chat.id,
-                                           text=day,
-                                           reply_markup=kla)
-                    await bot.send_message(chat_id=message.from_user.id,
-                                           text="Выберите время")
+                    count_days = int(BotDB.select_admin_count(callback.message.chat.id, '1')[0])
+                    count_user_days = int(BotDB.select_count_admin_days(day)[0])
+                    if count_user_days < 2:
+                        if count_days <= 14:
+                            await bot.send_message(callback.message.chat.id,
+                                                   text=day,
+                                                   reply_markup=kla)
 
-                    BotDB.add_admin_day(str(last_admin_id), day, callback.message.chat.id, 1)
-                    await StatesGroup.time.set()
+                            BotDB.add_admin_day(str(last_admin_id), day, callback.message.chat.id)
+                            await bot.send_message(chat_id=callback.message.chat.id,
+                                                   text="Выберите время. Если вы больше не хотите добавлять день пишите stop")
+                            await StatesGroup.time.set()
+                        else:
+                            await bot.send_message(chat_id=callback.message.chat.id,
+                                                   text="Вы выбрали все возможные дни и время.")
+                    else:
+                        await bot.send_message(chat_id=callback.message.chat.id,
+                                               text="Вы выбрали всё возможное время на этот день.")
+                else:
+                    await bot.send_message(chat_id=callback.message.chat.id,
+                                           text="Выберите день из клавиатуры.",
+                                           reply_markup=day_ikb)
 
             @dp.message_handler(state=StatesGroup.time)
             async def time_command(message: types.Message):
                 await state.finish()
-                try:
-                    """проверяет время ли введено"""
-                    check_int = int(message.text[0:1])
-                    check_int1 = int(message.text[3:4])
-                    await message.delete()
-                    """добавляет введённое время"""
-                    BotDB.add_admin_time2(message.text, message.from_user.id)
+                await message.delete()
+                if message.text != 'stop':
+                    try:
+                        """проверяет время ли введено"""
+                        check_int = int(message.text[0:1])
+                        check_int1 = int(message.text[3:4])
+                        """добавляет введённое время"""
+                        BotDB.add_admin_time2(message.text, message.from_user.id)
+                        await bot.send_message(chat_id=message.from_user.id,
+                                               text=message.text,
+                                               parse_mode='HTML',
+                                               reply_markup=ReplyKeyboardRemove())
+                        await bot.send_message(chat_id=message.from_user.id,
+                                               text="Если вы хотите выбрать ещё один день выбирайте. " + commands,
+                                               reply_markup=day_ikb)
+                        await bot.send_message(chat_id=message.from_user.id,
+                                               text=commands)
+                    except ValueError:
+                        print(1)
+                        await bot.send_message(chat_id=message.from_user.id,
+                                               text=message.text,
+                                               reply_markup=ReplyKeyboardRemove())
+                        await bot.send_message(chat_id=message.from_user.id,
+                                               text='Не балуйтесь со временем! Начинайте выбор дня сначала.',
+                                               reply_markup=day_ikb)
+                        """Удаляет день без времени"""
+                        BotDB.delete_need_day(BotDB.select_last_admin_id(message.from_user.id)[0])
+                else:
                     await bot.send_message(chat_id=message.from_user.id,
-                                           text=message.text,
-                                           parse_mode='HTML',
-                                           reply_markup=ReplyKeyboardRemove())
-                    await bot.send_message(chat_id=message.from_user.id,
-                                           text="Если вы хотите выбрать ещё один день выбирайте. " + commands,
-                                           reply_markup=day_ikb)
-                    await bot.send_message(chat_id=message.from_user.id,
-                                           text=commands)
-                except ValueError:
-                    print(1)
-                    await bot.send_message(chat_id=message.from_user.id,
-                                           text=message.text,
-                                           reply_markup=ReplyKeyboardRemove())
-                    await bot.send_message(chat_id=message.from_user.id,
-                                           text='Не балуйтесь со временем! Начинайте выбор дня сначала.',
-                                           reply_markup=day_ikb)
-                    """Удаляет день без времени"""
-                    BotDB.delete_need_day(BotDB.select_last_admin_id(message.from_user.id)[0])
+                                           text="Процесс остановлен")
+                await state.finish()
 
             @dp.message_handler(commands=['add_day'])
             async def add_command(message: types.Message):
@@ -364,7 +378,6 @@ async def tutor_command(message: types.Message, state: FSMContext):
 
             @dp.message_handler(commands=['delete_day'])
             async def delete_command(message: types.Message):
-
                 """бот отправляет сообщение"""
                 days_count = str(BotDB.select_admin_count_for_all_select(message.from_user.id)[0])
                 if days_count == '1':
@@ -418,24 +431,25 @@ async def tutor_command(message: types.Message, state: FSMContext):
             @dp.message_handler(state=StatesGroup.delete_time)
             async def time_command(message: types.Message):
                 await message.delete()
+                global day_for_delete
                 time_for_delete = message.text
                 if message.text != 'stop':
                     last_day_id = BotDB.select_last_admin_id(message.from_user.id)[0]
-                    need_day_id = BotDB.select_need_day_id(day_for_delete, time_for_delete)
+                    need_day_id = BotDB.select_need_day_id(day_for_delete, time_for_delete)[0]
                     BotDB.delete_need_day_1(day_for_delete, time_for_delete)
                     if last_day_id == need_day_id:
                         k = 0
                     else:
                         last_day_id = BotDB.select_last_admin_id(message.from_user.id)[0]
-                        last_day_and_time = BotDB.select_admin_day_and_time(last_day_id)
+                        last_day_and_time = BotDB.select_admin_day_and_time(last_day_id)[0]
                         try:
-                            BotDB.update_day_id(message.from_user.id, last_day_and_time[0], last_day_and_time[1])
+                            BotDB.update_day_id(need_day_id, last_day_and_time[0], last_day_and_time[1])
                         except IntegrityError:
                             k = 0
                         await bot.send_message(message.from_user.id,
                                                text=message.text)
-                        await bot.send_message(message.from_user.id,
-                                               text='день и время удалены')
+                    await bot.send_message(message.from_user.id,
+                                           text='день и время удалены')
                 else:
                     await bot.send_message(message.from_user.id,
                                            text='Процесс остановлен')
@@ -444,7 +458,6 @@ async def tutor_command(message: types.Message, state: FSMContext):
             @dp.message_handler(commands=['look_all'])
             async def look_command(message: types.Message):
                 """показывает всех пользователей у которых день и время совпадает с тьютором"""
-
 
                 await bot.send_message(chat_id=message.from_user.id,
                                        text="все пользователи у которых день и время совпадает с вашим: ",
@@ -464,7 +477,6 @@ async def tutor_command(message: types.Message, state: FSMContext):
                                            reply_markup=ReplyKeyboardRemove())
 
                     j += 1
-
         else:
             await bot.send_message(message.from_user.id,
                                    text="Введите пароль заново.")

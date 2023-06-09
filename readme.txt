@@ -1,9 +1,3 @@
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-Корневому админу дни и время не добавлять!
-
-
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 сайт хостинга pythonanywhere
 убери прокси если тестируешь везде кроме этого сайта
@@ -26,23 +20,6 @@
                                         database='имя_пользователя$название_бд')
     self.cursor = self.conn.cursor()'
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-Памятка для корневого админа
-
-Чтобы ввести новый интервал между админами(со старта он = 7) введитие - /new_admins_interval_корневойпароль \\например /new_admins_interval_222
-
-Чтобы добавить нового админа введите - /add_new_admin_корневойпароль \\например  /add_new_admin_222
-
-чтобы разлогиниться из обычного админа корневому введите - /unlog_корневойпароль \\например  /unlog_222 (учтите все дни этого админа удалятся)
-
-чтобы увидеть всех админов введите - /all_admins_корневойпароль \\например  /all_admins_222 (3 в никнейме означает что пароль никем не занят)
-
-чтобы удалить админа введие - /delete_admin_корневойпароль пароль (пароль админа которого хотите удалить) \\например /delete_admin_222 152
-
-чтобы увидеть все команды введите - /help_корневойпароль \\например /help_222
-
-чтобы поменять время в таблице со временем введите - /update_time_корневойпароль \\например /update_time_222
-
-чтобы прекратить работу бота после смены времени в таблице со временем введите - /alert_корневойпароль \\например /alert_22 (обязательно делайте это и запускайте бота заново если вы закончили изменять время в таблице со временем)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 config - там содержатся токены
@@ -76,55 +53,43 @@ CREATE TABLE `admin` (
   `times` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `password` varchar(40) DEFAULT NULL,
   `user_id` varchar(20) DEFAULT NULL,
-  `nickname` varchar(33) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `check_update` tinyint(1) NOT NULL DEFAULT '1'
+  `nickname` varchar(33) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 
 CREATE TABLE `user` (
   `id` int NOT NULL,
-  `day` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `time` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `user_id` int DEFAULT NULL,
-  `nickname` varchar(33) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `name` varchar(70) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `group_number` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL
+  `user_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `day` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `time` varchar(20) DEFAULT NULL,
+  `check_update` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-
-ALTER TABLE `user`
-  ADD PRIMARY KEY (`id`);
-
-
-ALTER TABLE `user`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 
 
 CREATE TABLE `time` (
+  `id` int NOT NULL,
   `day` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `time1` varchar(20) DEFAULT NULL,
-  `time2` varchar(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `time2` varchar(20) DEFAULT NULL,
+  `check1` tinyint(1) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;;
 
 
 !!!!добавление данных в таблицы!!!!
 
-INSERT INTO `admin` (`id`, `days`, `times`, `password`, `user_id`, `nickname`, check_update) VALUES
-(1, NULL, NULL, 'нужный корневой пароль', '1', '1', 0); //Корневой пароль, с помощью него добавляются новые пароли
+INSERT INTO `admin` (`id`, `days`, `times`, `password`, `user_id`, `nickname`) VALUES
+(1, '1', '1', 'нужный пароль', '2', '3');  //Корневой пароль
 
-INSERT INTO `admin` (`id`, `days`, `times`, `password`, `user_id`, `nickname`, check_update) VALUES
-(2, '1', '1', 'нужный пароль', '2', '3', 0);   // если лень вводить 1 админа
+!!!Время нужно вставлять через двоеточие воттак(часы:минуты)(если времени нет, то вставляйте 'xx:xx')!!!
+INSERT INTO `time` (`id`, `day`, `time1`, `time2`, `check1`) VALUES
+(1, 'Понедельник', 'xx:xx', 'xx:xx',  0),
+(2, 'Вторник', 'xx:xx', 'xx:xx', 0),
+(3, 'Среда', 'xx:xx', 'xx:xx', 0),
+(4, 'Четверг', 'xx:xx', 'xx:xx', 0),
+(5, 'Пятница', 'xx:xx', 'xx:xx', 0),
+(6, 'Суббота', 'xx:xx', 'xx:xx', 0),
+(7, 'Воскресенье', 'xx:xx', 'xx:xx', 0);
 
-!!!Время нужно вставлять через двоеточие воттак(часы:минуты)(если времени нет, то вставляйте вместо 'xx:xx' - 'NULL')!!!
-INSERT INTO `time` (`day`, `time1`, `time2`) VALUES
-('Понедельник', 'xx:xx', 'xx:xx'),
-('Вторник', 'xx:xx', 'xx:xx'),
-('Среда', 'xx:xx', 'xx:xx'),
-('Четверг', 'xx:xx', 'xx:xx'),
-('Пятница', 'xx:xx', 'xx:xx'),
-('Суббота', 'xx:xx', 'xx:xx'),
-('Воскресенье', 'xx:xx', 'xx:xx');
-
-!!!Если нужно обновить время впишите дропните таблицу и создайтё её заново!!!
-DROP TABLE time
