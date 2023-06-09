@@ -21,7 +21,7 @@ os.system('start python teach_bot.py')
 storage = MemoryStorage()
 
 """имя бд"""
-BotDB = BotDB('prov1.db')
+BotDB = BotDB('otrab01.db')
 
 """бот, прокси"""
 bot = Bot(token=BOT_TOKEN1)

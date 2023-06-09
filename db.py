@@ -9,7 +9,7 @@ class BotDB:
         self.conn = mysql.connector.connect(user='root',
                                             host='127.0.0.1',
                                             password='',
-                                            database='prov1')
+                                            database='otrab01')
         self.cursor = self.conn.cursor(buffered=True)
 
     def user_exists(self, user_id):
