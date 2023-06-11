@@ -32,7 +32,6 @@ dp = Dispatcher(bot=bot,
 
 commands = "выберите команду"
 
-root_password = BotDB.select_root_password(1)[0]
 """создание кнопок времени ко всем дням исключая пустое время"""
 day_mas = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
 kb_mas = [time_kb1, time_kb2, time_kb3, time_kb4, time_kb5, time_kb6, time_kb7]

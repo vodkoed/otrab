@@ -82,11 +82,6 @@ class BotDB:
         self.cursor.execute("SELECT name FROM user WHERE user_id = %s LIMIT 1", (user_id,))
         return self.cursor.fetchone()
 
-    def select_root_password(self, id):
-        """достаём корневой пароль из бд"""
-        self.cursor.execute("SELECT password FROM admin WHERE id = %s", (id,))
-        return self.cursor.fetchone()
-
     def select_time2(self, day):
         """достаём из бд время 2"""
         self.cursor.execute("SELECT time2 FROM time WHERE day = %s", (day,))
