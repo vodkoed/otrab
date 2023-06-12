@@ -174,8 +174,6 @@ async def tutor_command(message: types.Message, state: FSMContext):
                             last_day_id = BotDB.select_last_user_id(this_user)[0]
                             last_day_and_time = BotDB.select_user_day_and_time(last_day_id)
                             BotDB.delete_need_day_us(this_user_id)
-                            print(last_day_id)
-                            print(this_user_id)
                             try:
                                 if this_user_id != last_day_id:
                                     BotDB.update_day_id_us(this_user_id, last_day_and_time[0], last_day_and_time[1])
@@ -421,7 +419,7 @@ async def tutor_command(message: types.Message, state: FSMContext):
                     if message.text == "Воскресенье":
                         kla = time_kb7
                     await bot.send_message(message.from_user.id,
-                                           text=day_for_delete,
+                                           text=day_for_delete+"\n Если вы больше не хотите удалять день пишите stop",
                                            reply_markup=kla)
                     await StatesGroup.delete_time.set()
                 else:
@@ -457,7 +455,6 @@ async def tutor_command(message: types.Message, state: FSMContext):
 
             @dp.message_handler(commands=['look_all'])
             async def look_command(message: types.Message):
-                """показывает всех пользователей у которых день и время совпадает с тьютором"""
 
                 await bot.send_message(chat_id=message.from_user.id,
                                        text="все пользователи у которых день и время совпадает с вашим: ",

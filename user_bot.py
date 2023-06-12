@@ -241,6 +241,7 @@ async def user_command(message: types.Message, state: FSMContext):
     else:
         await bot.send_message(chat_id=message.from_user.id,
                                text="Процесс остановлен")
+        BotDB.delete_need_day_us(BotDB.select_last_user_id(message.from_user.id)[0])
     await state.finish()
 
 
@@ -287,7 +288,7 @@ async def delete_command(message: types.Message):
                                parse_mode='HTML',
                                reply_markup=ReplyKeyboardRemove())
         await bot.send_message(chat_id=message.from_user.id,
-                               text="Какой день вы хотите удалить?",
+                               text="Какой день вы хотите удалить? Если вы больше не хотите удалять день пишите stop",
                                parse_mode='HTML',
                                reply_markup=day_kb)
         await StatesGroup.delete_day.set()
@@ -322,7 +323,7 @@ async def time_command(message: types.Message, state: FSMContext):
             await bot.send_message(message.from_user.id,
                                    text="Время: \n")
             await bot.send_message(message.from_user.id,
-                                   text=BotDB.select_need_user_time(message.text))
+                                   text=BotDB.select_need_user_time(message.text)+"\n  Если вы больше не хотите удалять день пишите stop")
             await StatesGroup.delete_time.set()
 
             BotDB.update_check_update(1, message.from_user.id, message.text)
