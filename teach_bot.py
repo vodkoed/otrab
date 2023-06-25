@@ -189,7 +189,6 @@ async def tutor_command(message: types.Message, state: FSMContext):
                         k = 0
                     admins_to_update_time = BotDB.select_admins_to_update_time(day_for_update, last_time)
                     try:
-                        print(admins_to_update_time[0])
                         this_admin = admins_to_update_time[0][1]
                         this_admin_id = admins_to_update_time[0][0]
                         BotDB.delete_need_day(this_admin_id)
@@ -291,10 +290,6 @@ async def tutor_command(message: types.Message, state: FSMContext):
                     else:
                         await bot.send_message(chat_id=callback.message.chat.id,
                                                text="Вы выбрали всё возможное время на этот день.")
-                else:
-                    await bot.send_message(chat_id=callback.message.chat.id,
-                                           text="Выберите день из клавиатуры.",
-                                           reply_markup=day_ikb)
 
             @dp.message_handler(state=StatesGroup.time)
             async def time_command(message: types.Message):
@@ -317,7 +312,6 @@ async def tutor_command(message: types.Message, state: FSMContext):
                         await bot.send_message(chat_id=message.from_user.id,
                                                text=commands)
                     except ValueError:
-                        print(1)
                         await bot.send_message(chat_id=message.from_user.id,
                                                text=message.text,
                                                reply_markup=ReplyKeyboardRemove())
