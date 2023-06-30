@@ -85,7 +85,7 @@ INSERT INTO `admin` (`id`, `days`, `times`, `password`, `user_id`, `nickname`) V
 
 !!!Время нужно вставлять через двоеточие воттак(часы:минуты)(если времени нет, то вставляйте 'xx:xx')!!!
 INSERT INTO `time` (`id`, `day`, `time1`, `time2`, `check1`) VALUES
-(1, 'Понедельник', '22:33', 'xx:xx',  0),
+(1, 'Понедельник', 'xx:xx', 'xx:xx',  0),
 (2, 'Вторник', 'xx:xx', 'xx:xx', 0),
 (3, 'Среда', 'xx:xx', 'xx:xx', 0),
 (4, 'Четверг', 'xx:xx', 'xx:xx', 0),
