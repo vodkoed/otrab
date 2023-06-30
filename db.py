@@ -160,7 +160,7 @@ class BotDB:
         return self.cursor.fetchone()
 
     def select_last_user(self, day):
-        """достаём из бд последнего тьютора"""
+        """достаём из бд последнего юзера"""
         self.cursor.execute("SELECT max(id) FROM user WHERE day = %s", (day,))
         return self.cursor.fetchone()
 
@@ -207,7 +207,7 @@ class BotDB:
         return self.cursor.fetchone()
 
     def select_check_update(self, check_update, user_id):
-        """обновляем выбранное айди"""
+        """достаём день для удаления"""
         self.cursor.execute("SELECT day FROM user WHERE check_update = %s AND user_id = %s", (check_update, user_id))
         return self.cursor.fetchone()
 
@@ -217,7 +217,7 @@ class BotDB:
         return self.conn.commit()
 
     def delete_all_user(self, user_id):
-        """удаляем все дни и время тьютора"""
+        """удаляем все дни и время юзера"""
         self.cursor.execute("DELETE FROM user WHERE user_id = %s AND name = '1'", (user_id,))
         return self.conn.commit()
 
